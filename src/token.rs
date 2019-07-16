@@ -1,3 +1,6 @@
+use std::fmt::{self, Display, Formatter};
+
+#[derive(Debug)]
 pub enum TokenType {
     LeftParen(char),
     RightParen(char),
@@ -41,13 +44,26 @@ pub enum TokenType {
     EOF(String),
 }
 
+impl Display for TokenType {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+#[derive(Debug)]
 pub struct Token {
     tag: TokenType,
     line: u32,
 }
 
 impl Token {
-    fn new(tag: TokenType, line: u32) -> Self {
+    pub fn new(tag: TokenType, line: u32) -> Self {
         Self { tag, line }
+    }
+}
+
+impl Display for Token {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "({}, {})", self.tag, self.line)
     }
 }
