@@ -5,6 +5,7 @@ use std::path::Path;
 use std::process;
 
 mod error;
+mod scanner;
 mod token;
 
 fn main() -> io::Result<()> {
