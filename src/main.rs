@@ -4,6 +4,7 @@ use std::io::{self, stdin, Read, Write};
 use std::path::Path;
 use std::process;
 
+mod error;
 mod token;
 
 fn main() -> io::Result<()> {
