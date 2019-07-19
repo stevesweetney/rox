@@ -105,11 +105,33 @@ impl Scanner {
             }
             '\n' => self.line += 1,
             '\t' | '\r' | ' ' => (), // Ignore whitespace
+            '"' => self.handle_string(),
             _ => report(self.line, &format!("Unexpected character: {}", c)),
         };
     }
 
     pub fn add_token(&mut self, t: TokenType) {
         self.tokens.push(Token::new(t, self.line));
+    }
+
+    fn handle_string(&mut self) {
+        while let Some(c) = self.peek() {
+            match c {
+                '"' => break, // closing double quote
+                '\n' => self.line += 1,
+                _ => {
+                    self.advance();
+                }
+            }
+        }
+
+        if self.is_at_end() {
+            report(self.line, "Unterminated string");
+            return;
+        }
+
+        let _ = self.advance();
+        let value = self.source[self.start + 1..self.current - 1].to_owned();
+        self.add_token(TokenType::STRING(value));
     }
 }
