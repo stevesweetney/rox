@@ -23,7 +23,7 @@ pub enum TokenType {
     LessEqual(String),
     Identifer(String),
     STRING(String),
-    Number(String),
+    Number(f32),
     // Keywords
     And(String),
     Class(String),

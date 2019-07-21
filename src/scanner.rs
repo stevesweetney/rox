@@ -49,6 +49,10 @@ impl Scanner {
         self.chars.get(self.current).cloned()
     }
 
+    pub fn peek_next(&self) -> Option<char> {
+        self.chars.get(self.current + 1).cloned()
+    }
+
     pub fn scan_token(&mut self) {
         let c = self.advance();
         match c {
@@ -106,6 +110,7 @@ impl Scanner {
             '\n' => self.line += 1,
             '\t' | '\r' | ' ' => (), // Ignore whitespace
             '"' => self.handle_string(),
+            d if d.is_digit(10) => self.handle_number(),
             _ => report(self.line, &format!("Unexpected character: {}", c)),
         };
     }
@@ -133,5 +138,32 @@ impl Scanner {
         let _ = self.advance();
         let value = self.source[self.start + 1..self.current - 1].to_owned();
         self.add_token(TokenType::STRING(value));
+    }
+
+    fn handle_number(&mut self) {
+        self.take_numbers();
+
+        match (self.peek(), self.peek_next()) {
+            (Some('.'), Some(c)) if c.is_digit(10) => {
+                self.advance(); // consume the '.'
+                self.take_numbers();
+            }
+            _ => (),
+        }
+
+        let s_literal = &self.source[self.start..self.current];
+        if let Ok(n) = s_literal.parse::<f32>() {
+            self.add_token(TokenType::Number(n));
+        }
+    }
+
+    fn take_numbers(&mut self) {
+        while let Some(c) = self.peek() {
+            if c.is_digit(10) {
+                self.advance();
+            } else {
+                break;
+            }
+        }
     }
 }
