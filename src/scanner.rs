@@ -111,6 +111,7 @@ impl Scanner {
             '\t' | '\r' | ' ' => (), // Ignore whitespace
             '"' => self.handle_string(),
             d if d.is_digit(10) => self.handle_number(),
+            a if is_alpha(a) => self.handle_identifier(),
             _ => report(self.line, &format!("Unexpected character: {}", c)),
         };
     }
@@ -157,6 +158,19 @@ impl Scanner {
         }
     }
 
+    fn handle_identifier(&mut self) {
+        while let Some(c) = self.peek() {
+            if is_alphanumeric(c) {
+                self.advance();
+            } else {
+                break;
+            }
+        }
+
+        let literal = self.source[self.start..self.current].to_owned();
+        self.add_token(TokenType::Identifer(literal))
+    }
+
     fn take_numbers(&mut self) {
         while let Some(c) = self.peek() {
             if c.is_digit(10) {
@@ -166,4 +180,12 @@ impl Scanner {
             }
         }
     }
+}
+
+fn is_alpha(c: char) -> bool {
+    c.is_ascii_alphabetic() || c == '_'
+}
+
+fn is_alphanumeric(c: char) -> bool {
+    c.is_ascii_alphanumeric() || c == '_'
 }
