@@ -1,5 +1,27 @@
 use crate::error::report;
 use crate::token::{Token, TokenType};
+use lazy_static::lazy_static;
+use std::collections::HashMap;
+
+lazy_static! {
+    static ref KEYWORDS: HashMap<String, TokenType> = {
+        let mut m = HashMap::new();
+        m.insert("for".to_owned(), TokenType::For("for".to_owned()));
+        m.insert("fun".to_owned(), TokenType::Fun("fun".to_owned()));
+        m.insert("if".to_owned(), TokenType::If("if".to_owned()));
+        m.insert("or".to_owned(), TokenType::Or("or".to_owned()));
+        m.insert("nil".to_owned(), TokenType::Nil("nil".to_owned()));
+        m.insert("print".to_owned(), TokenType::Print("print".to_owned()));
+        m.insert("return".to_owned(), TokenType::Return("return".to_owned()));
+        m.insert("super".to_owned(), TokenType::Super("super".to_owned()));
+        m.insert("this".to_owned(), TokenType::This("this".to_owned()));
+        m.insert("true".to_owned(), TokenType::True("true".to_owned()));
+        m.insert("var".to_owned(), TokenType::Var("var".to_owned()));
+        m.insert("while".to_owned(), TokenType::While("while".to_owned()));
+        m.insert("if".to_owned(), TokenType::If("if".to_owned()));
+        m
+    };
+}
 
 struct Scanner {
     source: String,
@@ -168,7 +190,12 @@ impl Scanner {
         }
 
         let literal = self.source[self.start..self.current].to_owned();
-        self.add_token(TokenType::Identifer(literal))
+
+        let token_type = match KEYWORDS.get(&literal) {
+            Some(t) => (*t).clone(),
+            None => TokenType::Identifer(literal),
+        };
+        self.add_token(token_type);
     }
 
     fn take_numbers(&mut self) {
