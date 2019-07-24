@@ -75,6 +75,17 @@ impl Scanner {
         self.chars.get(self.current + 1).cloned()
     }
 
+    pub fn scan_tokens(&mut self) -> &[Token] {
+        while !self.is_at_end() {
+            self.start = self.current;
+            self.scan_token();
+        }
+
+        self.add_token(TokenType::EOF("".to_owned()));
+
+        &self.tokens
+    }
+
     pub fn scan_token(&mut self) {
         let c = self.advance();
         match c {
