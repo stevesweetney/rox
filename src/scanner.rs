@@ -130,7 +130,7 @@ impl Scanner {
             '/' => {
                 if self.match_char('/') {
                     while let Some(c) = self.peek() {
-                        if c == 'n' {
+                        if c == '\n' {
                             break;
                         }
 
