@@ -136,6 +136,8 @@ impl Scanner {
 
                         let _ = self.advance();
                     }
+                } else if self.match_char('*') {
+                    self.handle_block_comment()
                 } else {
                     self.add_token(TokenType::Slash('/'))
                 }
@@ -151,6 +153,32 @@ impl Scanner {
 
     pub fn add_token(&mut self, t: TokenType) {
         self.tokens.push(Token::new(t, self.line));
+    }
+
+    fn handle_block_comment(&mut self) {
+        while let Some(c) = self.peek() {
+            match (c, self.peek_next()) {
+                ('*', Some('/')) => {
+                    // consume both the closing star and slash
+                    self.advance();
+                    self.advance();
+                    break;
+                }
+                ('/', Some('*')) => {
+                    // consume both the opening slash and star
+                    self.advance();
+                    self.advance();
+                    self.handle_block_comment();
+                }
+                ('\n', _) => {
+                    self.line += 1;
+                    self.advance();
+                }
+                _ => {
+                    self.advance();
+                }
+            }
+        }
     }
 
     fn handle_string(&mut self) {
