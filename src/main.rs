@@ -8,6 +8,8 @@ mod error;
 mod scanner;
 mod token;
 
+use scanner::Scanner;
+
 fn main() -> io::Result<()> {
     let args: Vec<_> = env::args().collect();
 
@@ -27,7 +29,7 @@ fn run_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
     let mut buffer = String::new();
 
     file.read_to_string(&mut buffer)?;
-    run(&buffer);
+    run(buffer.clone());
 
     Ok(())
 }
@@ -38,14 +40,15 @@ fn run_prompt() -> io::Result<()> {
         print!("> ");
         io::stdout().flush()?;
         stdin().read_line(&mut buffer)?;
-        run(&buffer);
+        run(buffer.clone());
 
         buffer.clear();
     }
 }
 
-fn run(source: &str) {
-    let tokens = source.split_whitespace();
+fn run(source: String) {
+    let mut s = Scanner::new(source);
+    let tokens = s.scan_tokens();
 
     for token in tokens {
         println!("{}", token);

@@ -23,7 +23,7 @@ lazy_static! {
     };
 }
 
-struct Scanner {
+pub struct Scanner {
     source: String,
     chars: Vec<char>,
     tokens: Vec<Token>,
