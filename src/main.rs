@@ -5,6 +5,7 @@ use std::path::Path;
 use std::process;
 
 mod error;
+mod expr;
 mod scanner;
 mod token;
 
