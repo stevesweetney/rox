@@ -1,4 +1,5 @@
 use crate::token::Token;
+use std::fmt::{self, Display, Formatter};
 
 enum Expr {
     Binary {
@@ -22,4 +23,45 @@ enum LiteralValue {
     Nil,
     STRING(String),
     Number(f32),
+}
+
+impl Display for LiteralValue {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        match self {
+            LiteralValue::True => write!(f, "true"),
+            LiteralValue::False => write!(f, "false"),
+            LiteralValue::Nil => write!(f, "nil"),
+            LiteralValue::STRING(s) => write!(f, "{}", s),
+            LiteralValue::Number(s) => write!(f, "{}", s.to_string()),
+        }
+    }
+}
+
+mod print {
+    use super::Expr;
+
+    fn print_ast(e: &Expr) -> String {
+        match e {
+            Expr::Binary {
+                left,
+                operator,
+                right,
+            } => parenthesize(&operator.tag.to_string(), &[left, right]),
+            Expr::Unary { operator, operand } => {
+                parenthesize(&operator.tag.to_string(), &[operand])
+            }
+            Expr::Literal(val) => parenthesize(&val.to_string(), &[]),
+            Expr::Grouping { expr } => parenthesize("grouping", &[expr]),
+        };
+        unimplemented!()
+    }
+
+    fn parenthesize(name: &str, exprs: &[&Expr]) -> String {
+        let mut res = format!("( {}", name);
+        for e in exprs {
+            res += &print_ast(e);
+        }
+        res.push(')');
+        res
+    }
 }
