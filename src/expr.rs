@@ -66,8 +66,24 @@ mod print {
     }
 
     #[cfg(test)]
+    fn rpn(e: &Expr) -> String {
+        match e {
+            Expr::Binary {
+                left,
+                operator,
+                right,
+            } => format!("{} {} {}", rpn(left), rpn(right), operator.tag.to_string()),
+            Expr::Literal(val) => val.to_string(),
+            Expr::Grouping { expr } => format!("{}", rpn(expr)),
+            Expr::Unary { operator, operand } => {
+                format!("{}{}", operator.tag.to_string(), rpn(operand))
+            }
+        }
+    }
+
+    #[cfg(test)]
     mod test {
-        use super::{print_ast, Expr};
+        use super::{print_ast, rpn, Expr};
         use crate::expr::LiteralValue;
         use crate::token::{Token, TokenType};
 
@@ -89,6 +105,28 @@ mod print {
             };
 
             assert_eq!(print_ast(&expr), "(* (- 123) (grouping 45.67))")
+        }
+
+        #[test]
+        fn test_rpn() {
+            let minus_operator = Token::new(TokenType::Minus, 1);
+            let mul_operator = Token::new(TokenType::Star, 1);
+            let plus_operator = Token::new(TokenType::Plus, 1);
+            let expr = Expr::Binary {
+                left: Box::new(Expr::Binary {
+                    left: Box::new(Expr::Literal(LiteralValue::Number(1.0))),
+                    operator: plus_operator,
+                    right: Box::new(Expr::Literal(LiteralValue::Number(2.0))),
+                }),
+                operator: mul_operator,
+                right: Box::new(Expr::Binary {
+                    left: Box::new(Expr::Literal(LiteralValue::Number(4.0))),
+                    operator: minus_operator,
+                    right: Box::new(Expr::Literal(LiteralValue::Number(3.0))),
+                }),
+            };
+
+            assert_eq!(rpn(&expr), "1 2 + 4 3 - *")
         }
     }
 }
