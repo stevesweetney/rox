@@ -17,7 +17,7 @@ enum Expr {
     },
 }
 
-enum LiteralValue {
+pub enum LiteralValue {
     True,
     False,
     Nil,
@@ -50,15 +50,15 @@ mod print {
             Expr::Unary { operator, operand } => {
                 parenthesize(&operator.tag.to_string(), &[operand])
             }
-            Expr::Literal(val) => parenthesize(&val.to_string(), &[]),
+            Expr::Literal(val) => val.to_string(),
             Expr::Grouping { expr } => parenthesize("grouping", &[expr]),
-        };
-        unimplemented!()
+        }
     }
 
     fn parenthesize(name: &str, exprs: &[&Expr]) -> String {
-        let mut res = format!("( {}", name);
+        let mut res = format!("({}", name);
         for e in exprs {
+            res += " ";
             res += &print_ast(e);
         }
         res.push(')');
