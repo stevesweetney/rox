@@ -74,7 +74,7 @@ mod print {
                 right,
             } => format!("{} {} {}", rpn(left), rpn(right), operator.tag.to_string()),
             Expr::Literal(val) => val.to_string(),
-            Expr::Grouping { expr } => format!("{}", rpn(expr)),
+            Expr::Grouping { expr } => rpn(expr),
             Expr::Unary { operator, operand } => {
                 format!("{}{}", operator.tag.to_string(), rpn(operand))
             }
