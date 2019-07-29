@@ -6,19 +6,19 @@ use std::collections::HashMap;
 lazy_static! {
     static ref KEYWORDS: HashMap<String, TokenType> = {
         let mut m = HashMap::new();
-        m.insert("for".to_owned(), TokenType::For("for".to_owned()));
-        m.insert("fun".to_owned(), TokenType::Fun("fun".to_owned()));
-        m.insert("if".to_owned(), TokenType::If("if".to_owned()));
-        m.insert("or".to_owned(), TokenType::Or("or".to_owned()));
-        m.insert("nil".to_owned(), TokenType::Nil("nil".to_owned()));
-        m.insert("print".to_owned(), TokenType::Print("print".to_owned()));
-        m.insert("return".to_owned(), TokenType::Return("return".to_owned()));
-        m.insert("super".to_owned(), TokenType::Super("super".to_owned()));
-        m.insert("this".to_owned(), TokenType::This("this".to_owned()));
-        m.insert("true".to_owned(), TokenType::True("true".to_owned()));
-        m.insert("var".to_owned(), TokenType::Var("var".to_owned()));
-        m.insert("while".to_owned(), TokenType::While("while".to_owned()));
-        m.insert("if".to_owned(), TokenType::If("if".to_owned()));
+        m.insert("for".to_owned(), TokenType::For);
+        m.insert("fun".to_owned(), TokenType::Fun);
+        m.insert("if".to_owned(), TokenType::If);
+        m.insert("or".to_owned(), TokenType::Or);
+        m.insert("nil".to_owned(), TokenType::Nil);
+        m.insert("print".to_owned(), TokenType::Print);
+        m.insert("return".to_owned(), TokenType::Return);
+        m.insert("super".to_owned(), TokenType::Super);
+        m.insert("this".to_owned(), TokenType::This);
+        m.insert("true".to_owned(), TokenType::True);
+        m.insert("var".to_owned(), TokenType::Var);
+        m.insert("while".to_owned(), TokenType::While);
+        m.insert("if".to_owned(), TokenType::If);
         m
     };
 }
@@ -81,7 +81,7 @@ impl Scanner {
             self.scan_token();
         }
 
-        self.add_token(TokenType::EOF("".to_owned()));
+        self.add_token(TokenType::EOF);
 
         &self.tokens
     }
@@ -89,42 +89,42 @@ impl Scanner {
     pub fn scan_token(&mut self) {
         let c = self.advance();
         match c {
-            '(' => self.add_token(TokenType::LeftParen('(')),
-            ')' => self.add_token(TokenType::RightParen(')')),
-            '{' => self.add_token(TokenType::LeftBrace('{')),
-            '}' => self.add_token(TokenType::RightBrace('}')),
-            ',' => self.add_token(TokenType::Comma(',')),
-            '.' => self.add_token(TokenType::Dot('.')),
-            '-' => self.add_token(TokenType::Minus('-')),
-            '+' => self.add_token(TokenType::Plus('+')),
-            ';' => self.add_token(TokenType::Semicolon(';')),
-            '*' => self.add_token(TokenType::Star('*')),
+            '(' => self.add_token(TokenType::LeftParen),
+            ')' => self.add_token(TokenType::RightParen),
+            '{' => self.add_token(TokenType::LeftBrace),
+            '}' => self.add_token(TokenType::RightBrace),
+            ',' => self.add_token(TokenType::Comma),
+            '.' => self.add_token(TokenType::Dot),
+            '-' => self.add_token(TokenType::Minus),
+            '+' => self.add_token(TokenType::Plus),
+            ';' => self.add_token(TokenType::Semicolon),
+            '*' => self.add_token(TokenType::Star),
             '!' => {
                 if self.match_char('=') {
-                    self.add_token(TokenType::BangEqual("!=".to_owned()))
+                    self.add_token(TokenType::BangEqual)
                 } else {
-                    self.add_token(TokenType::Bang('!'))
+                    self.add_token(TokenType::Bang)
                 }
             }
             '=' => {
                 if self.match_char('=') {
-                    self.add_token(TokenType::EqualEqual("!=".to_owned()))
+                    self.add_token(TokenType::EqualEqual)
                 } else {
-                    self.add_token(TokenType::Equal('!'))
+                    self.add_token(TokenType::Equal)
                 }
             }
             '<' => {
                 if self.match_char('=') {
-                    self.add_token(TokenType::LessEqual("!=".to_owned()))
+                    self.add_token(TokenType::LessEqual)
                 } else {
-                    self.add_token(TokenType::Less('!'))
+                    self.add_token(TokenType::Less)
                 }
             }
             '>' => {
                 if self.match_char('=') {
-                    self.add_token(TokenType::GreaterEqual("!=".to_owned()))
+                    self.add_token(TokenType::GreaterEqual)
                 } else {
-                    self.add_token(TokenType::Greater('!'))
+                    self.add_token(TokenType::Greater)
                 }
             }
             '/' => {
@@ -139,7 +139,7 @@ impl Scanner {
                 } else if self.match_char('*') {
                     self.handle_block_comment()
                 } else {
-                    self.add_token(TokenType::Slash('/'))
+                    self.add_token(TokenType::Slash)
                 }
             }
             '\n' => self.line += 1,
