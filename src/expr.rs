@@ -1,7 +1,7 @@
 use crate::token::Token;
 use std::fmt::{self, Display, Formatter};
 
-enum Expr {
+pub enum Expr {
     Binary {
         left: Box<Expr>,
         operator: Token,
