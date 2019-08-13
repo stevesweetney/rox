@@ -1,5 +1,6 @@
-use crate::expr::Expr;
+use crate::expr::{Expr, LiteralValue};
 use crate::token::{Token, TokenType};
+use std::error::Error;
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -31,6 +32,153 @@ impl Parser {
         match self.peek() {
             Some(token) if token.tag.eq(&TokenType::EOF) => true,
             _ => false,
+        }
+    }
+
+    fn advance(&mut self) -> Option<&Token> {
+        if self.is_at_end() {
+            None
+        } else {
+            self.current += 1;
+            self.tokens.get(self.current - 1)
+        }
+    }
+
+    fn consume(&mut self, token: &TokenType, err_message: &str) -> Result<(), String> {
+        let res = self
+            .peek()
+            .filter(|t| t.tag.eq(token))
+            .ok_or_else(|| err_message.to_owned())
+            .map(|_| ());
+
+        if res.is_ok() {
+            self.current += 1;
+        }
+
+        res
+    }
+
+    pub fn expression(&mut self) -> Expr {
+        self.equality()
+    }
+
+    pub fn equality(&mut self) -> Expr {
+        let mut expr = self.comparison();
+
+        while let Some(operator) = self.match_token(&[TokenType::BangEqual, TokenType::EqualEqual])
+        {
+            let op = operator.clone();
+            let right_expr = self.comparison();
+            expr = Expr::Binary {
+                left: Box::new(expr),
+                operator: op,
+                right: Box::new(right_expr),
+            }
+        }
+
+        expr
+    }
+
+    pub fn comparison(&mut self) -> Expr {
+        let mut expr = self.addition();
+
+        while let Some(operator) = self.match_token(&[
+            TokenType::Greater,
+            TokenType::GreaterEqual,
+            TokenType::Less,
+            TokenType::LessEqual,
+        ]) {
+            let op = operator.clone();
+            let right_expr = self.addition();
+            expr = Expr::Binary {
+                left: Box::new(expr),
+                operator: op,
+                right: Box::new(right_expr),
+            }
+        }
+
+        expr
+    }
+
+    pub fn addition(&mut self) -> Expr {
+        let mut expr = self.multiplication();
+
+        while let Some(operator) = self.match_token(&[TokenType::Minus, TokenType::Plus]) {
+            let op = operator.clone();
+            let right_expr = self.multiplication();
+            expr = Expr::Binary {
+                left: Box::new(expr),
+                operator: op,
+                right: Box::new(right_expr),
+            }
+        }
+
+        expr
+    }
+
+    pub fn multiplication(&mut self) -> Expr {
+        let mut expr = self.unary();
+
+        while let Some(operator) = self.match_token(&[TokenType::Slash, TokenType::Star]) {
+            let op = operator.clone();
+            let right_expr = self.unary();
+            expr = Expr::Binary {
+                left: Box::new(expr),
+                operator: op,
+                right: Box::new(right_expr),
+            }
+        }
+
+        expr
+    }
+
+    pub fn unary(&mut self) -> Expr {
+        match self.match_token(&[TokenType::Bang, TokenType::Minus]) {
+            Some(token) => Expr::Unary {
+                operator: (token.clone()),
+                operand: Box::new(self.unary()),
+            },
+            None => self.primary(),
+        }
+    }
+
+    pub fn primary(&mut self) -> Expr {
+        let token = self.peek();
+        let token_type = token.map(|t| &t.tag);
+        match token_type {
+            Some(TokenType::True) => {
+                self.current += 1;
+                Expr::Literal(LiteralValue::True)
+            }
+            Some(TokenType::False) => {
+                self.current += 1;
+                Expr::Literal(LiteralValue::False)
+            }
+            Some(TokenType::Number(n)) => {
+                let num = *n;
+                self.current += 1;
+                Expr::Literal(LiteralValue::Number(num))
+            }
+            Some(TokenType::Nil) => {
+                self.current += 1;
+                Expr::Literal(LiteralValue::Nil)
+            }
+            Some(TokenType::STRING(val)) => {
+                let s = val.to_owned();
+                self.current += 1;
+                Expr::Literal(LiteralValue::STRING(s))
+            }
+            Some(TokenType::LeftParen) => {
+                self.current += 1;
+                let expr = self.expression();
+                match self.consume(&TokenType::RightParen, "expected ')' after expression") {
+                    Ok(_) => Expr::Grouping {
+                        expr: Box::new(expr),
+                    },
+                    Err(e) => panic!("{}", e),
+                }
+            }
+            _ => unreachable!(),
         }
     }
 }
