@@ -1,11 +1,13 @@
+use crate::error;
 use crate::expr::{Expr, LiteralValue};
 use crate::token::{Token, TokenType};
-use std::error::Error;
 
 pub struct Parser {
     tokens: Vec<Token>,
     current: usize,
 }
+
+type ParseResult<T> = Result<T, String>;
 
 impl Parser {
     fn new(tokens: Vec<Token>) -> Self {
@@ -44,7 +46,7 @@ impl Parser {
         }
     }
 
-    fn consume(&mut self, token: &TokenType, err_message: &str) -> Result<(), String> {
+    fn consume(&mut self, token: &TokenType, err_message: &str) -> ParseResult<()> {
         let res = self
             .peek()
             .filter(|t| t.tag.eq(token))
@@ -58,17 +60,17 @@ impl Parser {
         res
     }
 
-    pub fn expression(&mut self) -> Expr {
+    pub fn expression(&mut self) -> ParseResult<Expr> {
         self.equality()
     }
 
-    pub fn equality(&mut self) -> Expr {
-        let mut expr = self.comparison();
+    pub fn equality(&mut self) -> ParseResult<Expr> {
+        let mut expr = self.comparison()?;
 
         while let Some(operator) = self.match_token(&[TokenType::BangEqual, TokenType::EqualEqual])
         {
             let op = operator.clone();
-            let right_expr = self.comparison();
+            let right_expr = self.comparison()?;
             expr = Expr::Binary {
                 left: Box::new(expr),
                 operator: op,
@@ -76,11 +78,11 @@ impl Parser {
             }
         }
 
-        expr
+        Ok(expr)
     }
 
-    pub fn comparison(&mut self) -> Expr {
-        let mut expr = self.addition();
+    pub fn comparison(&mut self) -> ParseResult<Expr> {
+        let mut expr = self.addition()?;
 
         while let Some(operator) = self.match_token(&[
             TokenType::Greater,
@@ -89,7 +91,7 @@ impl Parser {
             TokenType::LessEqual,
         ]) {
             let op = operator.clone();
-            let right_expr = self.addition();
+            let right_expr = self.addition()?;
             expr = Expr::Binary {
                 left: Box::new(expr),
                 operator: op,
@@ -97,15 +99,15 @@ impl Parser {
             }
         }
 
-        expr
+        Ok(expr)
     }
 
-    pub fn addition(&mut self) -> Expr {
-        let mut expr = self.multiplication();
+    pub fn addition(&mut self) -> ParseResult<Expr> {
+        let mut expr = self.multiplication()?;
 
         while let Some(operator) = self.match_token(&[TokenType::Minus, TokenType::Plus]) {
             let op = operator.clone();
-            let right_expr = self.multiplication();
+            let right_expr = self.multiplication()?;
             expr = Expr::Binary {
                 left: Box::new(expr),
                 operator: op,
@@ -113,15 +115,15 @@ impl Parser {
             }
         }
 
-        expr
+        Ok(expr)
     }
 
-    pub fn multiplication(&mut self) -> Expr {
-        let mut expr = self.unary();
+    pub fn multiplication(&mut self) -> ParseResult<Expr> {
+        let mut expr = self.unary()?;
 
         while let Some(operator) = self.match_token(&[TokenType::Slash, TokenType::Star]) {
             let op = operator.clone();
-            let right_expr = self.unary();
+            let right_expr = self.unary()?;
             expr = Expr::Binary {
                 left: Box::new(expr),
                 operator: op,
@@ -129,53 +131,56 @@ impl Parser {
             }
         }
 
-        expr
+        Ok(expr)
     }
 
-    pub fn unary(&mut self) -> Expr {
+    pub fn unary(&mut self) -> ParseResult<Expr> {
         match self.match_token(&[TokenType::Bang, TokenType::Minus]) {
-            Some(token) => Expr::Unary {
+            Some(token) => Ok(Expr::Unary {
                 operator: (token.clone()),
-                operand: Box::new(self.unary()),
-            },
+                operand: Box::new(self.unary()?),
+            }),
             None => self.primary(),
         }
     }
 
-    pub fn primary(&mut self) -> Expr {
+    pub fn primary(&mut self) -> ParseResult<Expr> {
         let token = self.peek();
-        let token_type = token.map(|t| &t.tag);
-        match token_type {
-            Some(TokenType::True) => {
+        let pair = token.map(|t| (&t.tag, t.line));
+        match pair {
+            Some((TokenType::True, _)) => {
                 self.current += 1;
-                Expr::Literal(LiteralValue::True)
+                Ok(Expr::Literal(LiteralValue::True))
             }
-            Some(TokenType::False) => {
+            Some((TokenType::False, _)) => {
                 self.current += 1;
-                Expr::Literal(LiteralValue::False)
+                Ok(Expr::Literal(LiteralValue::False))
             }
-            Some(TokenType::Number(n)) => {
+            Some((TokenType::Number(n), _)) => {
                 let num = *n;
                 self.current += 1;
-                Expr::Literal(LiteralValue::Number(num))
+                Ok(Expr::Literal(LiteralValue::Number(num)))
             }
-            Some(TokenType::Nil) => {
+            Some((TokenType::Nil, _)) => {
                 self.current += 1;
-                Expr::Literal(LiteralValue::Nil)
+                Ok(Expr::Literal(LiteralValue::Nil))
             }
-            Some(TokenType::STRING(val)) => {
+            Some((TokenType::STRING(val), _)) => {
                 let s = val.to_owned();
                 self.current += 1;
-                Expr::Literal(LiteralValue::STRING(s))
+                Ok(Expr::Literal(LiteralValue::STRING(s)))
             }
-            Some(TokenType::LeftParen) => {
+            Some((TokenType::LeftParen, line)) => {
                 self.current += 1;
-                let expr = self.expression();
+                let expr = self.expression()?;
                 match self.consume(&TokenType::RightParen, "expected ')' after expression") {
-                    Ok(_) => Expr::Grouping {
+                    Ok(_) => Ok(Expr::Grouping {
                         expr: Box::new(expr),
-                    },
-                    Err(e) => panic!("{}", e),
+                    }),
+                    Err(e) => {
+                        error::report(line, &e);
+                        Err(e)
+                    }
                 }
             }
             _ => unreachable!(),
