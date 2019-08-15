@@ -14,6 +14,10 @@ impl Parser {
         Self { tokens, current: 0 }
     }
 
+    pub fn parse(&mut self) -> ParseResult<Expr> {
+        self.expression()
+    }
+
     fn match_token(&mut self, types: &[TokenType]) -> Option<&Token> {
         let matched = self
             .tokens
@@ -60,11 +64,11 @@ impl Parser {
         res
     }
 
-    pub fn expression(&mut self) -> ParseResult<Expr> {
+    fn expression(&mut self) -> ParseResult<Expr> {
         self.equality()
     }
 
-    pub fn equality(&mut self) -> ParseResult<Expr> {
+    fn equality(&mut self) -> ParseResult<Expr> {
         let mut expr = self.comparison()?;
 
         while let Some(operator) = self.match_token(&[TokenType::BangEqual, TokenType::EqualEqual])
@@ -81,7 +85,7 @@ impl Parser {
         Ok(expr)
     }
 
-    pub fn comparison(&mut self) -> ParseResult<Expr> {
+    fn comparison(&mut self) -> ParseResult<Expr> {
         let mut expr = self.addition()?;
 
         while let Some(operator) = self.match_token(&[
@@ -102,7 +106,7 @@ impl Parser {
         Ok(expr)
     }
 
-    pub fn addition(&mut self) -> ParseResult<Expr> {
+    fn addition(&mut self) -> ParseResult<Expr> {
         let mut expr = self.multiplication()?;
 
         while let Some(operator) = self.match_token(&[TokenType::Minus, TokenType::Plus]) {
@@ -118,7 +122,7 @@ impl Parser {
         Ok(expr)
     }
 
-    pub fn multiplication(&mut self) -> ParseResult<Expr> {
+    fn multiplication(&mut self) -> ParseResult<Expr> {
         let mut expr = self.unary()?;
 
         while let Some(operator) = self.match_token(&[TokenType::Slash, TokenType::Star]) {
@@ -134,7 +138,7 @@ impl Parser {
         Ok(expr)
     }
 
-    pub fn unary(&mut self) -> ParseResult<Expr> {
+    fn unary(&mut self) -> ParseResult<Expr> {
         match self.match_token(&[TokenType::Bang, TokenType::Minus]) {
             Some(token) => Ok(Expr::Unary {
                 operator: (token.clone()),
@@ -144,7 +148,7 @@ impl Parser {
         }
     }
 
-    pub fn primary(&mut self) -> ParseResult<Expr> {
+    fn primary(&mut self) -> ParseResult<Expr> {
         let token = self.peek();
         let pair = token.map(|t| (&t.tag, t.line));
         match pair {
