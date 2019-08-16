@@ -10,7 +10,7 @@ pub struct Parser {
 type ParseResult<T> = Result<T, String>;
 
 impl Parser {
-    fn new(tokens: Vec<Token>) -> Self {
+    pub fn new(tokens: Vec<Token>) -> Self {
         Self { tokens, current: 0 }
     }
 

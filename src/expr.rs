@@ -37,10 +37,10 @@ impl Display for LiteralValue {
     }
 }
 
-mod print {
+pub mod print {
     use super::Expr;
 
-    fn print_ast(e: &Expr) -> String {
+    pub fn print_ast(e: &Expr) -> String {
         match e {
             Expr::Binary {
                 left,

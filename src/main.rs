@@ -10,6 +10,7 @@ mod parser;
 mod scanner;
 mod token;
 
+use parser::Parser;
 use scanner::Scanner;
 
 fn main() -> io::Result<()> {
@@ -50,9 +51,10 @@ fn run_prompt() -> io::Result<()> {
 
 fn run(source: String) {
     let mut s = Scanner::new(source);
-    let tokens = s.scan_tokens();
+    let tokens = s.scan_tokens().to_vec();
+    let mut parser = Parser::new(tokens);
 
-    for token in tokens {
-        println!("{}", token);
+    if let Ok(expression) = parser.parse() {
+        println!("{}", expr::print::print_ast(&expression));
     }
 }
