@@ -190,4 +190,28 @@ impl Parser {
             _ => unreachable!(),
         }
     }
+
+    fn synchronize(&mut self) {
+        while let Some(token) = self.peek() {
+            match token.tag {
+                TokenType::EOF | TokenType::Semicolon => {
+                    self.advance();
+                    return;
+                }
+                TokenType::Class
+                | TokenType::Fun
+                | TokenType::Var
+                | TokenType::For
+                | TokenType::If
+                | TokenType::While
+                | TokenType::Print
+                | TokenType::Return => {
+                    return;
+                }
+                _ => {
+                    self.advance();
+                }
+            }
+        }
+    }
 }
