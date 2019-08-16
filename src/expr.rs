@@ -15,6 +15,11 @@ pub enum Expr {
         operator: Token,
         operand: Box<Expr>,
     },
+    Ternary {
+        condition: Box<Expr>,
+        true_expr: Box<Expr>,
+        false_expr: Box<Expr>,
+    },
 }
 
 pub enum LiteralValue {
@@ -52,6 +57,11 @@ pub mod print {
             }
             Expr::Literal(val) => val.to_string(),
             Expr::Grouping { expr } => parenthesize("grouping", &[expr]),
+            Expr::Ternary {
+                condition,
+                true_expr,
+                false_expr,
+            } => parenthesize("?", &[condition, true_expr, false_expr]),
         }
     }
 
@@ -78,6 +88,7 @@ pub mod print {
             Expr::Unary { operator, operand } => {
                 format!("{}{}", operator.tag.to_string(), rpn(operand))
             }
+            _ => unreachable!(),
         }
     }
 

@@ -10,6 +10,7 @@ pub enum TokenType {
     Dot,
     Minus,
     Plus,
+    Colon,
     Semicolon,
     Slash,
     Star,
@@ -42,6 +43,7 @@ pub enum TokenType {
     Var,
     While,
     EOF,
+    QuestionMark,
 }
 
 impl Display for TokenType {
@@ -86,6 +88,8 @@ impl Display for TokenType {
             TokenType::Var => write!(f, "var"),
             TokenType::While => write!(f, "while"),
             TokenType::EOF => write!(f, "EOF"),
+            TokenType::Colon => write!(f, ":"),
+            TokenType::QuestionMark => write!(f, "?"),
         }
     }
 }

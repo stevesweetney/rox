@@ -65,7 +65,7 @@ impl Parser {
     }
 
     fn expression(&mut self) -> ParseResult<Expr> {
-        self.equality()
+        self.ternary()
     }
 
     fn equality(&mut self) -> ParseResult<Expr> {
@@ -188,6 +188,36 @@ impl Parser {
                 }
             }
             _ => unreachable!(),
+        }
+    }
+
+    fn ternary(&mut self) -> ParseResult<Expr> {
+        let condition = self.equality()?;
+        match self.match_token(&[TokenType::QuestionMark]) {
+            Some(token) => {
+                let line = token.line;
+                let true_expr = self.equality()?;
+                let consumed = self.consume(
+                    &TokenType::Colon,
+                    &format!("uh oh expected ':' in ternary expression, line: {}", line),
+                );
+                match consumed {
+                    Ok(_) => {
+                        let false_expr = self.equality()?;
+                        let expr = Expr::Ternary {
+                            condition: Box::new(condition),
+                            true_expr: Box::new(true_expr),
+                            false_expr: Box::new(false_expr),
+                        };
+                        Ok(expr)
+                    }
+                    Err(e) => {
+                        error::report(line, &e);
+                        Err(e)
+                    }
+                }
+            }
+            _ => Ok(condition),
         }
     }
 
