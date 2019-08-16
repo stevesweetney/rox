@@ -16,6 +16,7 @@ lazy_static! {
         m.insert("super".to_owned(), TokenType::Super);
         m.insert("this".to_owned(), TokenType::This);
         m.insert("true".to_owned(), TokenType::True);
+        m.insert("false".to_owned(), TokenType::False);
         m.insert("var".to_owned(), TokenType::Var);
         m.insert("while".to_owned(), TokenType::While);
         m.insert("if".to_owned(), TokenType::If);
