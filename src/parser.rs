@@ -37,6 +37,7 @@ impl Parser {
     fn is_at_end(&self) -> bool {
         match self.peek() {
             Some(token) if token.tag.eq(&TokenType::EOF) => true,
+            None => true,
             _ => false,
         }
     }
