@@ -187,7 +187,16 @@ impl Parser {
                     }
                 }
             }
-            _ => unreachable!(),
+            Some((token_type, line)) => {
+                let message = format!("unexpected '{}'", token_type);
+                error::report(line, &message);
+                Err(message)
+            }
+            None => {
+                let message = "unexpected end of input".to_owned();
+                error::report(0, &message);
+                Err(message)
+            }
         }
     }
 
