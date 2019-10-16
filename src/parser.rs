@@ -70,73 +70,108 @@ impl Parser {
     }
 
     fn equality(&mut self) -> ParseResult<Expr> {
-        let mut expr = self.comparison()?;
+        let operators = &[TokenType::BangEqual, TokenType::EqualEqual];
+        if let Some(operator) = self.match_token(operators) {
+            error::report(
+                operator.line,
+                "missing left-hand-side operand for equality expression",
+            );
+            self.comparison().and_then(|_| self.expression())
+        } else {
+            let mut expr = self.comparison()?;
 
-        while let Some(operator) = self.match_token(&[TokenType::BangEqual, TokenType::EqualEqual])
-        {
-            let op = operator.clone();
-            let right_expr = self.comparison()?;
-            expr = Expr::Binary {
-                left: Box::new(expr),
-                operator: op,
-                right: Box::new(right_expr),
+            while let Some(operator) = self.match_token(operators) {
+                let op = operator.clone();
+                let right_expr = self.comparison()?;
+                expr = Expr::Binary {
+                    left: Box::new(expr),
+                    operator: op,
+                    right: Box::new(right_expr),
+                }
             }
-        }
 
-        Ok(expr)
+            Ok(expr)
+        }
     }
 
     fn comparison(&mut self) -> ParseResult<Expr> {
-        let mut expr = self.addition()?;
-
-        while let Some(operator) = self.match_token(&[
+        let operators = &[
             TokenType::Greater,
             TokenType::GreaterEqual,
             TokenType::Less,
             TokenType::LessEqual,
-        ]) {
-            let op = operator.clone();
-            let right_expr = self.addition()?;
-            expr = Expr::Binary {
-                left: Box::new(expr),
-                operator: op,
-                right: Box::new(right_expr),
-            }
-        }
+        ];
+        if let Some(operator) = self.match_token(operators) {
+            error::report(
+                operator.line,
+                "missing left-hand-side operand for comparison expression",
+            );
+            self.comparison().and_then(|_| self.expression())
+        } else {
+            let mut expr = self.addition()?;
 
-        Ok(expr)
+            while let Some(operator) = self.match_token(operators) {
+                let op = operator.clone();
+                let right_expr = self.addition()?;
+                expr = Expr::Binary {
+                    left: Box::new(expr),
+                    operator: op,
+                    right: Box::new(right_expr),
+                }
+            }
+
+            Ok(expr)
+        }
     }
 
     fn addition(&mut self) -> ParseResult<Expr> {
-        let mut expr = self.multiplication()?;
+        let operators = &[TokenType::Minus, TokenType::Plus];
+        if let Some(operator) = self.match_token(operators) {
+            error::report(
+                operator.line,
+                "missing left-hand-side operand for addition expression",
+            );
+            self.comparison().and_then(|_| self.expression())
+        } else {
+            let mut expr = self.multiplication()?;
 
-        while let Some(operator) = self.match_token(&[TokenType::Minus, TokenType::Plus]) {
-            let op = operator.clone();
-            let right_expr = self.multiplication()?;
-            expr = Expr::Binary {
-                left: Box::new(expr),
-                operator: op,
-                right: Box::new(right_expr),
+            while let Some(operator) = self.match_token(operators) {
+                let op = operator.clone();
+                let right_expr = self.multiplication()?;
+                expr = Expr::Binary {
+                    left: Box::new(expr),
+                    operator: op,
+                    right: Box::new(right_expr),
+                }
             }
-        }
 
-        Ok(expr)
+            Ok(expr)
+        }
     }
 
     fn multiplication(&mut self) -> ParseResult<Expr> {
-        let mut expr = self.unary()?;
+        let operators = &[TokenType::Slash, TokenType::Star];
+        if let Some(operator) = self.match_token(operators) {
+            error::report(
+                operator.line,
+                "missing left-hand-side operand for multiplication expression",
+            );
+            self.comparison().and_then(|_| self.expression())
+        } else {
+            let mut expr = self.unary()?;
 
-        while let Some(operator) = self.match_token(&[TokenType::Slash, TokenType::Star]) {
-            let op = operator.clone();
-            let right_expr = self.unary()?;
-            expr = Expr::Binary {
-                left: Box::new(expr),
-                operator: op,
-                right: Box::new(right_expr),
+            while let Some(operator) = self.match_token(operators) {
+                let op = operator.clone();
+                let right_expr = self.unary()?;
+                expr = Expr::Binary {
+                    left: Box::new(expr),
+                    operator: op,
+                    right: Box::new(right_expr),
+                }
             }
-        }
 
-        Ok(expr)
+            Ok(expr)
+        }
     }
 
     fn unary(&mut self) -> ParseResult<Expr> {
