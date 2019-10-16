@@ -1,6 +1,7 @@
 use crate::token::Token;
 use std::fmt::{self, Display, Formatter};
 
+#[derive(Debug, PartialEq)]
 pub enum Expr {
     Binary {
         left: Box<Expr>,
@@ -22,6 +23,7 @@ pub enum Expr {
     },
 }
 
+#[derive(Debug, PartialEq)]
 pub enum LiteralValue {
     True,
     False,

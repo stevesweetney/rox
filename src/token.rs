@@ -94,7 +94,7 @@ impl Display for TokenType {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Token {
     pub tag: TokenType,
     pub line: u32,

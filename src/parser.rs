@@ -255,3 +255,53 @@ impl Parser {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::expr::{Expr, LiteralValue};
+
+    #[test]
+    fn test_unary_minus() {
+        let tokens = vec![
+            Token::new(TokenType::Minus, 0),
+            Token::new(TokenType::Number(9.0), 0),
+        ];
+        let mut parser = Parser::new(tokens);
+        let result = parser.parse();
+
+        assert!(result.is_ok());
+        assert_eq!(
+            result,
+            Ok(Expr::Unary {
+                operator: Token {
+                    tag: TokenType::Minus,
+                    line: 0
+                },
+                operand: Box::new(Expr::Literal(LiteralValue::Number(9.0))),
+            },)
+        )
+    }
+
+    #[test]
+    fn test_unary_bang() {
+        let tokens = vec![
+            Token::new(TokenType::Bang, 0),
+            Token::new(TokenType::Number(10.0), 0),
+        ];
+        let mut parser = Parser::new(tokens);
+        let result = parser.parse();
+
+        assert!(result.is_ok());
+        assert_eq!(
+            result,
+            Ok(Expr::Unary {
+                operator: Token {
+                    tag: TokenType::Bang,
+                    line: 0
+                },
+                operand: Box::new(Expr::Literal(LiteralValue::Number(10.0))),
+            },)
+        )
+    }
+}
