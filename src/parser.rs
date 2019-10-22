@@ -125,8 +125,8 @@ impl Parser {
     }
 
     fn addition(&mut self) -> ParseResult<Expr> {
-        let operators = &[TokenType::Minus, TokenType::Plus];
-        if let Some(operator) = self.match_token(operators) {
+        let operators = &[TokenType::Plus, TokenType::Minus];
+        if let Some(operator) = self.match_token(&[TokenType::Plus]) {
             error::report(
                 operator.line,
                 "missing left-hand-side operand for addition expression",
