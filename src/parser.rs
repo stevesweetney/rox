@@ -339,4 +339,67 @@ mod tests {
             },)
         )
     }
+
+    #[test]
+    fn test_chained_binary_operations() {
+        let tokens = vec![
+            Token::new(TokenType::Number(10.0), 0),
+            Token::new(TokenType::Plus, 0),
+            Token::new(TokenType::Number(2.0), 0),
+            Token::new(TokenType::Star, 0),
+            Token::new(TokenType::Number(6.0), 0),
+        ];
+
+        let tokens_2 = vec![
+            Token::new(TokenType::Number(4.0), 0),
+            Token::new(TokenType::Star, 0),
+            Token::new(TokenType::Number(24.0), 0),
+            Token::new(TokenType::Plus, 0),
+            Token::new(TokenType::Number(11.0), 0),
+        ];
+        let mut parser = Parser::new(tokens);
+        let mut parser_2 = Parser::new(tokens_2);
+        let result = parser.parse();
+        let result_2 = parser_2.parse();
+
+        assert!(result.is_ok());
+        assert!(result_2.is_ok());
+        assert_eq!(
+            result,
+            Ok(Expr::Binary {
+                left: Box::new(Expr::Literal(LiteralValue::Number(10.0))),
+                operator: Token {
+                    tag: TokenType::Plus,
+                    line: 0
+                },
+                right: Box::new(Expr::Binary {
+                    left: Box::new(Expr::Literal(LiteralValue::Number(2.0))),
+                    operator: Token {
+                        tag: TokenType::Star,
+                        line: 0
+                    },
+                    right: Box::new(Expr::Literal(LiteralValue::Number(6.0))),
+                }),
+            },)
+        );
+
+        assert_eq!(
+            result_2,
+            Ok(Expr::Binary {
+                right: Box::new(Expr::Literal(LiteralValue::Number(11.0))),
+                operator: Token {
+                    tag: TokenType::Plus,
+                    line: 0
+                },
+                left: Box::new(Expr::Binary {
+                    left: Box::new(Expr::Literal(LiteralValue::Number(4.0))),
+                    operator: Token {
+                        tag: TokenType::Star,
+                        line: 0
+                    },
+                    right: Box::new(Expr::Literal(LiteralValue::Number(24.0))),
+                }),
+            },)
+        );
+    }
 }
