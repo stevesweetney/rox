@@ -92,3 +92,26 @@ fn handle_binary_expression(left: Expr, operator: Token, right: Expr) -> Interpr
         _ => unreachable!(),
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_addition() {
+        let expr_1 = Expr::Binary {
+            left: Box::new(Expr::Literal(LiteralValue::Number(10.0))),
+            right: Box::new(Expr::Literal(LiteralValue::Number(2.0))),
+            operator: Token::new(TokenType::Plus, 0),
+        };
+
+        let expr_2 = Expr::Binary {
+            left: Box::new(expr_1.clone()),
+            right: Box::new(Expr::Literal(LiteralValue::Number(-5.0))),
+            operator: Token::new(TokenType::Plus, 0),
+        };
+
+        assert_eq!(interpret(expr_1), Ok(LiteralValue::Number(12.0)));
+        assert_eq!(interpret(expr_2), Ok(LiteralValue::Number(7.0)));
+    }
+}
