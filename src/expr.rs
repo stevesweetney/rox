@@ -32,6 +32,32 @@ pub enum LiteralValue {
     Number(f32),
 }
 
+impl LiteralValue {
+    pub fn is_truthy(&self) -> bool {
+        match self {
+            LiteralValue::False | LiteralValue::Nil => false,
+            _ => true,
+        }
+    }
+
+    pub fn is_number(&self) -> bool {
+        match self {
+            LiteralValue::Number(_) => true,
+            _ => false,
+        }
+    }
+}
+
+impl From<bool> for LiteralValue {
+    fn from(b: bool) -> Self {
+        if b {
+            LiteralValue::True
+        } else {
+            LiteralValue::False
+        }
+    }
+}
+
 impl Display for LiteralValue {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
