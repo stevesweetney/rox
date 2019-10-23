@@ -56,6 +56,9 @@ fn run(source: String) {
     let mut parser = Parser::new(tokens);
 
     if let Ok(expression) = parser.parse() {
-        println!("{}", expr::print::print_ast(&expression));
+        match interpreter::interpret(expression) {
+            Ok(val) => println!("{}", val),
+            Err(e) => eprintln!("{}", e),
+        }
     }
 }
