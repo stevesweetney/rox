@@ -47,7 +47,11 @@ fn handle_binary_expression(left: Expr, operator: Token, right: Expr) -> Interpr
             Ok(LiteralValue::Number(l_num - r_num))
         }
         (TokenType::Slash, LiteralValue::Number(l_num), LiteralValue::Number(r_num)) => {
-            Ok(LiteralValue::Number(l_num / r_num))
+            if r_num == 0.0 {
+                Err("Divide by zero error".to_string())
+            } else {
+                Ok(LiteralValue::Number(l_num / r_num))
+            }
         }
         (TokenType::Star, LiteralValue::Number(l_num), LiteralValue::Number(r_num)) => {
             Ok(LiteralValue::Number(l_num * r_num))

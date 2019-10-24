@@ -27,8 +27,12 @@ proptest! {
         prop_assert_eq!((op1 * op2 + op3).to_string(), result);
 
         let input = format!("{} * {} / {}", op1, op2, op3);
-        let result = scan_parse_and_interpret(input).unwrap().to_string();
+        let result = scan_parse_and_interpret(input).map(|val| val.to_string());
 
-        prop_assert_eq!((op1 * op2 / op3).to_string(), result);
+        if op3 != 0.0 {
+            prop_assert_eq!((op1 * op2 / op3).to_string(), result.unwrap());
+        } else {
+            prop_assert_eq!(Err("Divide by zero error".to_string()), result)
+        }
     }
 }
