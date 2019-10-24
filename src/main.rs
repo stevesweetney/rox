@@ -11,6 +11,9 @@ mod parser;
 mod scanner;
 mod token;
 
+#[cfg(test)]
+mod test;
+
 use parser::Parser;
 use scanner::Scanner;
 
