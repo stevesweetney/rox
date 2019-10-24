@@ -70,7 +70,8 @@ impl Display for LiteralValue {
     }
 }
 
-pub mod print {
+#[cfg(test)]
+mod print {
     use super::Expr;
 
     pub fn print_ast(e: &Expr) -> String {
@@ -103,7 +104,6 @@ pub mod print {
         res
     }
 
-    #[cfg(test)]
     fn rpn(e: &Expr) -> String {
         match e {
             Expr::Binary {
@@ -120,7 +120,6 @@ pub mod print {
         }
     }
 
-    #[cfg(test)]
     mod test {
         use super::{print_ast, rpn, Expr};
         use crate::expr::LiteralValue;

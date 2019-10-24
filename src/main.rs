@@ -58,10 +58,8 @@ fn run(source: String) {
     let tokens = s.scan_tokens().to_vec();
     let mut parser = Parser::new(tokens);
 
-    if let Ok(expression) = parser.parse() {
-        match interpreter::interpret(expression) {
-            Ok(val) => println!("{}", val),
-            Err(e) => eprintln!("{}", e),
-        }
+    match parser.parse().and_then(interpreter::interpret) {
+        Ok(val) => println!("{}", val),
+        Err(e) => eprintln!("{}", e),
     }
 }
