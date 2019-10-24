@@ -35,4 +35,12 @@ proptest! {
             prop_assert_eq!(Err("Divide by zero error".to_string()), result)
         }
     }
+
+    #[test]
+    fn test_ternary_operation(condition in any::<bool>(), expr1 in "[a-zA-Z0-9]+", expr2 in "[a-zA-Z0-9]+" ) {
+        let input = format!(r#"{} ? "{}" : "{}""#, condition, expr1, expr2);
+        let result = scan_parse_and_interpret(input).unwrap().to_string();
+
+        prop_assert_eq!(if condition {expr1} else {expr2}, result)
+    }
 }
