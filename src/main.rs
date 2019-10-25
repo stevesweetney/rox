@@ -12,8 +12,8 @@ mod scanner;
 mod statement;
 mod token;
 
-// #[cfg(test)]
-// mod test;
+#[cfg(test)]
+mod test;
 
 use parser::Parser;
 use scanner::Scanner;
@@ -58,11 +58,9 @@ fn run(source: String) {
     let mut s = Scanner::new(source);
     let tokens = s.scan_tokens().to_vec();
     let mut parser = Parser::new(tokens);
+    let mut interpreter = interpreter::Interpreter::default();
 
-    if let Err(e) = parser
-        .parse()
-        .and_then(|stms| interpreter::interpret(&stms))
-    {
+    if let Err(e) = parser.parse().and_then(|stms| interpreter.interpret(&stms)) {
         eprintln!("{}", e)
     }
 }
