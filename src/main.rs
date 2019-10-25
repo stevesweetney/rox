@@ -9,10 +9,11 @@ mod expr;
 mod interpreter;
 mod parser;
 mod scanner;
+mod statement;
 mod token;
 
-#[cfg(test)]
-mod test;
+// #[cfg(test)]
+// mod test;
 
 use parser::Parser;
 use scanner::Scanner;
@@ -58,8 +59,10 @@ fn run(source: String) {
     let tokens = s.scan_tokens().to_vec();
     let mut parser = Parser::new(tokens);
 
-    match parser.parse().and_then(interpreter::interpret) {
-        Ok(val) => println!("{}", val),
-        Err(e) => eprintln!("{}", e),
+    if let Err(e) = parser
+        .parse()
+        .and_then(|stms| interpreter::interpret(&stms))
+    {
+        eprintln!("{}", e)
     }
 }

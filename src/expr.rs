@@ -1,3 +1,4 @@
+use crate::statement::Stmt;
 use crate::token::Token;
 use std::fmt::{self, Display, Formatter};
 
@@ -21,6 +22,14 @@ pub enum Expr {
         true_expr: Box<Expr>,
         false_expr: Box<Expr>,
     },
+}
+
+impl From<Stmt> for Expr {
+    fn from(s: Stmt) -> Self {
+        match s {
+            Stmt::Expr(e) | Stmt::Print(e) => e,
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]

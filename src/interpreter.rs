@@ -1,14 +1,35 @@
 use crate::expr::{Expr, LiteralValue};
+use crate::statement::Stmt;
 use crate::token::{Token, TokenType};
 
-pub type InterpretResult = Result<LiteralValue, String>;
+pub type EvalResult = Result<LiteralValue, String>;
+pub type ExecuteResult = Result<(), String>;
 
-pub fn interpret(e: Expr) -> InterpretResult {
+pub fn interpret(statements: &[Stmt]) -> ExecuteResult {
+    for s in statements {
+        execute(s.clone())?;
+    }
+
+    Ok(())
+}
+
+pub fn execute(s: Stmt) -> ExecuteResult {
+    match s {
+        Stmt::Expr(e) => evaluate(e).map(|_| ()),
+        Stmt::Print(e) => {
+            let val = evaluate(e)?;
+            println!("{}", val);
+            Ok(())
+        }
+    }
+}
+
+pub fn evaluate(e: Expr) -> EvalResult {
     match e {
         Expr::Literal(v) => Ok(v),
-        Expr::Grouping { expr } => interpret(*expr),
+        Expr::Grouping { expr } => evaluate(*expr),
         Expr::Unary { operator, operand } => {
-            let evaluated = interpret(*operand)?;
+            let evaluated = evaluate(*operand)?;
             match (evaluated, operator.tag) {
                 (LiteralValue::Number(n), TokenType::Minus) => Ok(LiteralValue::Number(-n)),
                 (_, TokenType::Minus) => Err("expected a number in negation expression".to_owned()),
@@ -26,10 +47,10 @@ pub fn interpret(e: Expr) -> InterpretResult {
             true_expr,
             false_expr,
         } => {
-            let condition_evaluated = interpret(*condition)?;
+            let condition_evaluated = evaluate(*condition)?;
             match condition_evaluated {
-                LiteralValue::True => interpret(*true_expr),
-                LiteralValue::False => interpret(*false_expr),
+                LiteralValue::True => evaluate(*true_expr),
+                LiteralValue::False => evaluate(*false_expr),
                 _ => Err(
                     "expected a boolean expression as condition in ternary statement".to_owned(),
                 ),
@@ -38,9 +59,9 @@ pub fn interpret(e: Expr) -> InterpretResult {
     }
 }
 
-fn handle_binary_expression(left: Expr, operator: Token, right: Expr) -> InterpretResult {
-    let left_evaluated = interpret(left)?;
-    let right_evaluated = interpret(right)?;
+fn handle_binary_expression(left: Expr, operator: Token, right: Expr) -> EvalResult {
+    let left_evaluated = evaluate(left)?;
+    let right_evaluated = evaluate(right)?;
 
     match (operator.tag, left_evaluated, right_evaluated) {
         (TokenType::Minus, LiteralValue::Number(l_num), LiteralValue::Number(r_num)) => {
@@ -115,7 +136,7 @@ mod test {
             operator: Token::new(TokenType::Plus, 0),
         };
 
-        assert_eq!(interpret(expr_1), Ok(LiteralValue::Number(12.0)));
-        assert_eq!(interpret(expr_2), Ok(LiteralValue::Number(7.0)));
+        assert_eq!(evaluate(expr_1), Ok(LiteralValue::Number(12.0)));
+        assert_eq!(evaluate(expr_2), Ok(LiteralValue::Number(7.0)));
     }
 }

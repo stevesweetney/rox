@@ -1,5 +1,6 @@
 use crate::error;
 use crate::expr::{Expr, LiteralValue};
+use crate::statement::Stmt;
 use crate::token::{Token, TokenType};
 
 pub struct Parser {
@@ -14,8 +15,12 @@ impl Parser {
         Self { tokens, current: 0 }
     }
 
-    pub fn parse(&mut self) -> ParseResult<Expr> {
-        self.expression()
+    pub fn parse(&mut self) -> ParseResult<Vec<Stmt>> {
+        let mut stmts = Vec::new();
+        while !self.is_at_end() {
+            stmts.push(self.statement()?)
+        }
+        Ok(stmts)
     }
 
     fn match_token(&mut self, types: &[TokenType]) -> Option<&Token> {
@@ -63,6 +68,32 @@ impl Parser {
         }
 
         res
+    }
+
+    fn statement(&mut self) -> ParseResult<Stmt> {
+        if self.match_token(&[TokenType::Print]).is_some() {
+            self.finish_print_statement()
+        } else {
+            self.expression_statement()
+        }
+    }
+
+    fn finish_print_statement(&mut self) -> ParseResult<Stmt> {
+        let expr = self.expression()?;
+        self.consume(
+            &TokenType::Semicolon,
+            "expected a semicolon following statement",
+        )?;
+        Ok(Stmt::Print(expr))
+    }
+
+    fn expression_statement(&mut self) -> ParseResult<Stmt> {
+        let expr = self.expression()?;
+        self.consume(
+            &TokenType::Semicolon,
+            "expected a semicolon following statement",
+        )?;
+        Ok(Stmt::Expr(expr))
     }
 
     fn expression(&mut self) -> ParseResult<Expr> {
@@ -301,6 +332,7 @@ mod tests {
         let tokens = vec![
             Token::new(TokenType::Minus, 0),
             Token::new(TokenType::Number(9.0), 0),
+            Token::new(TokenType::Semicolon, 0),
         ];
         let mut parser = Parser::new(tokens);
         let result = parser.parse();
@@ -308,13 +340,13 @@ mod tests {
         assert!(result.is_ok());
         assert_eq!(
             result,
-            Ok(Expr::Unary {
+            Ok(vec![Stmt::Expr(Expr::Unary {
                 operator: Token {
                     tag: TokenType::Minus,
                     line: 0
                 },
                 operand: Box::new(Expr::Literal(LiteralValue::Number(9.0))),
-            },)
+            })],)
         )
     }
 
@@ -323,6 +355,7 @@ mod tests {
         let tokens = vec![
             Token::new(TokenType::Bang, 0),
             Token::new(TokenType::Number(10.0), 0),
+            Token::new(TokenType::Semicolon, 0),
         ];
         let mut parser = Parser::new(tokens);
         let result = parser.parse();
@@ -330,13 +363,13 @@ mod tests {
         assert!(result.is_ok());
         assert_eq!(
             result,
-            Ok(Expr::Unary {
+            Ok(vec![Stmt::Expr(Expr::Unary {
                 operator: Token {
                     tag: TokenType::Bang,
                     line: 0
                 },
                 operand: Box::new(Expr::Literal(LiteralValue::Number(10.0))),
-            },)
+            })],)
         )
     }
 
@@ -348,6 +381,7 @@ mod tests {
             Token::new(TokenType::Number(2.0), 0),
             Token::new(TokenType::Star, 0),
             Token::new(TokenType::Number(6.0), 0),
+            Token::new(TokenType::Semicolon, 0),
         ];
 
         let tokens_2 = vec![
@@ -356,6 +390,7 @@ mod tests {
             Token::new(TokenType::Number(24.0), 0),
             Token::new(TokenType::Plus, 0),
             Token::new(TokenType::Number(11.0), 0),
+            Token::new(TokenType::Semicolon, 0),
         ];
         let mut parser = Parser::new(tokens);
         let mut parser_2 = Parser::new(tokens_2);
@@ -366,7 +401,7 @@ mod tests {
         assert!(result_2.is_ok());
         assert_eq!(
             result,
-            Ok(Expr::Binary {
+            Ok(vec![Stmt::Expr(Expr::Binary {
                 left: Box::new(Expr::Literal(LiteralValue::Number(10.0))),
                 operator: Token {
                     tag: TokenType::Plus,
@@ -380,12 +415,12 @@ mod tests {
                     },
                     right: Box::new(Expr::Literal(LiteralValue::Number(6.0))),
                 }),
-            },)
+            })],)
         );
 
         assert_eq!(
             result_2,
-            Ok(Expr::Binary {
+            Ok(vec![Stmt::Expr(Expr::Binary {
                 right: Box::new(Expr::Literal(LiteralValue::Number(11.0))),
                 operator: Token {
                     tag: TokenType::Plus,
@@ -399,7 +434,7 @@ mod tests {
                     },
                     right: Box::new(Expr::Literal(LiteralValue::Number(24.0))),
                 }),
-            },)
+            })],)
         );
     }
 }
