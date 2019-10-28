@@ -1,6 +1,9 @@
+use rustyline::error::ReadlineError;
+use rustyline::Editor;
+
 use std::env;
 use std::fs::File;
-use std::io::{self, stdin, Read, Write};
+use std::io::{self, Read};
 use std::path::Path;
 use std::process;
 
@@ -26,7 +29,7 @@ fn main() -> io::Result<()> {
     } else if args.len() == 2 {
         run_file(&args[1])?;
     } else {
-        run_prompt()?;
+        run_prompt();
     }
 
     Ok(())
@@ -42,15 +45,27 @@ fn run_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
     Ok(())
 }
 
-fn run_prompt() -> io::Result<()> {
-    let mut buffer = String::new();
+fn run_prompt() {
+    let mut rl = Editor::<()>::new();
     loop {
-        print!("> ");
-        io::stdout().flush()?;
-        stdin().read_line(&mut buffer)?;
-        run(buffer.clone());
-
-        buffer.clear();
+        match rl.readline("> ") {
+            Ok(line) => {
+                rl.add_history_entry(&line);
+                run(line);
+            }
+            Err(ReadlineError::Interrupted) => {
+                println!("Ctrl-C");
+                break;
+            }
+            Err(ReadlineError::Eof) => {
+                println!("Ctrl-D");
+                break;
+            }
+            Err(e) => {
+                println!("Error: {}", e);
+                break;
+            }
+        }
     }
 }
 
