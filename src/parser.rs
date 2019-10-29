@@ -17,10 +17,22 @@ impl Parser {
 
     pub fn parse(&mut self) -> ParseResult<Vec<Stmt>> {
         let mut stmts = Vec::new();
+        let mut has_parse_error = false;
         while !self.is_at_end() {
-            stmts.push(self.declaration()?)
+            match self.declaration() {
+                Ok(stmt) => stmts.push(stmt),
+                Err(e) => {
+                    has_parse_error = true;
+                    eprintln!("{}", e)
+                }
+            }
         }
-        Ok(stmts)
+
+        if has_parse_error {
+            Err("Parsing error(s) found".to_string())
+        } else {
+            Ok(stmts)
+        }
     }
 
     fn match_token(&mut self, types: &[TokenType]) -> Option<&Token> {
@@ -84,11 +96,17 @@ impl Parser {
     }
 
     fn declaration(&mut self) -> ParseResult<Stmt> {
-        if self.match_token(&[TokenType::Var]).is_some() {
+        let stmt = if self.match_token(&[TokenType::Var]).is_some() {
             self.finish_var_declaration()
         } else {
             self.statement()
+        };
+
+        if stmt.is_err() {
+            self.synchronize();
         }
+
+        stmt
     }
 
     fn finish_var_declaration(&mut self) -> ParseResult<Stmt> {
