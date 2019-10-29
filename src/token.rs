@@ -46,6 +46,15 @@ pub enum TokenType {
     QuestionMark,
 }
 
+impl TokenType {
+    pub fn get_identifier_value(&self) -> Option<String> {
+        match self {
+            TokenType::Identifer(val) => Some(val.to_string()),
+            _ => None,
+        }
+    }
+}
+
 impl Display for TokenType {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {

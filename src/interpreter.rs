@@ -40,6 +40,7 @@ impl<'a> Interpreter<'a> {
                 writeln!(self.stdout, "{}", val).expect("failed to print");
                 Ok(())
             }
+            Stmt::VarDec { .. } => Err("Unsupported for now.".to_owned()),
         }
     }
 

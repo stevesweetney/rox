@@ -18,7 +18,7 @@ impl Parser {
     pub fn parse(&mut self) -> ParseResult<Vec<Stmt>> {
         let mut stmts = Vec::new();
         while !self.is_at_end() {
-            stmts.push(self.statement()?)
+            stmts.push(self.declaration()?)
         }
         Ok(stmts)
     }
@@ -68,6 +68,42 @@ impl Parser {
         }
 
         res
+    }
+
+    fn consume_identifier(&mut self, err_message: &str) -> ParseResult<String> {
+        let res = self
+            .peek()
+            .and_then(|t| t.tag.get_identifier_value())
+            .ok_or_else(|| err_message.to_owned());
+
+        if res.is_ok() {
+            self.current += 1;
+        }
+
+        res
+    }
+
+    fn declaration(&mut self) -> ParseResult<Stmt> {
+        if self.match_token(&[TokenType::Var]).is_some() {
+            self.finish_var_declaration()
+        } else {
+            self.statement()
+        }
+    }
+
+    fn finish_var_declaration(&mut self) -> ParseResult<Stmt> {
+        let name = self.consume_identifier("expected an identifer after 'var' keyword")?;
+        let initializer = if self.match_token(&[TokenType::Equal]).is_some() {
+            Some(self.expression()?)
+        } else {
+            None
+        };
+
+        self.consume(
+            &TokenType::Semicolon,
+            "expected a semicolon following statement",
+        )?;
+        Ok(Stmt::VarDec { name, initializer })
     }
 
     fn statement(&mut self) -> ParseResult<Stmt> {
