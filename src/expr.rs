@@ -3,6 +3,10 @@ use std::fmt::{self, Display, Formatter};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expr {
+    Assign {
+        name: Token,
+        value: Box<Expr>,
+    },
     Binary {
         left: Box<Expr>,
         operator: Token,
@@ -77,6 +81,9 @@ mod print {
 
     pub fn print_ast(e: &Expr) -> String {
         match e {
+            Expr::Assign { name, value } => {
+                parenthesize(&format!("assign '{}'", name.tag), &[value])
+            }
             Expr::Binary {
                 left,
                 operator,

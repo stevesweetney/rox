@@ -61,4 +61,13 @@ proptest! {
 
         prop_assert_eq!(format!("{}\n", op1 + op2), String::from_utf8(buffer).unwrap())
     }
+
+    #[test]
+    fn test_assignments(op1 in any::<f32>(), op2 in any::<f32>()) {
+        let mut buffer = Vec::new();
+        let input = format!(r#"var a = {}; print a; a = {}; print a;"#, op1, op2);
+        scan_parse_and_interpret(input, &mut buffer).unwrap();
+
+        prop_assert_eq!(format!("{}\n{}\n", op1, op2), String::from_utf8(buffer).unwrap())
+    }
 }

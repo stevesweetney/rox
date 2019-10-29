@@ -31,4 +31,21 @@ impl Environment {
             )
         })
     }
+
+    pub fn assign(&mut self, token: &Token, value: LiteralValue) -> Result<LiteralValue, String> {
+        let var_name = token
+            .tag
+            .get_identifier_value()
+            .expect("expected identifier token");
+
+        if self.globals.contains_key(&var_name) {
+            self.globals.insert(var_name, value.clone());
+            Ok(value)
+        } else {
+            Err(format!(
+                "[line {}] Error: variable '{}' is not defined",
+                token.line, var_name
+            ))
+        }
+    }
 }

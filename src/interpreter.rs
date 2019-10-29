@@ -58,10 +58,14 @@ impl<'a> Interpreter<'a> {
         }
     }
 
-    pub fn evaluate(&self, e: Expr) -> EvalResult {
+    pub fn evaluate(&mut self, e: Expr) -> EvalResult {
         match e {
             Expr::Literal(v) => Ok(v),
             Expr::Variable(ident) => self.environment.get(&ident).map(|lit_val| lit_val.clone()),
+            Expr::Assign { name, value } => {
+                let eval = self.evaluate(*value)?;
+                self.environment.assign(&name, eval)
+            }
             Expr::Grouping { expr } => self.evaluate(*expr),
             Expr::Unary { operator, operand } => {
                 let evaluated = self.evaluate(*operand)?;
@@ -97,7 +101,7 @@ impl<'a> Interpreter<'a> {
         }
     }
 
-    fn handle_binary_expression(&self, left: Expr, operator: Token, right: Expr) -> EvalResult {
+    fn handle_binary_expression(&mut self, left: Expr, operator: Token, right: Expr) -> EvalResult {
         let left_evaluated = self.evaluate(left)?;
         let right_evaluated = self.evaluate(right)?;
 
@@ -163,7 +167,7 @@ mod test {
 
     #[test]
     fn test_addition() {
-        let interpreter = Interpreter::default();
+        let mut interpreter = Interpreter::default();
         let expr_1 = Expr::Binary {
             left: Box::new(Expr::Literal(LiteralValue::Number(10.0))),
             right: Box::new(Expr::Literal(LiteralValue::Number(2.0))),
