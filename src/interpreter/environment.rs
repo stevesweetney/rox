@@ -1,4 +1,5 @@
 use crate::expr::LiteralValue;
+use crate::token::Token;
 use std::collections::HashMap;
 
 #[derive(Debug)]
@@ -18,9 +19,16 @@ impl Environment {
             .insert(key, value.unwrap_or_else(|| LiteralValue::Nil));
     }
 
-    pub fn get(&self, key: &str) -> Result<&LiteralValue, String> {
-        self.globals
-            .get(key)
-            .ok_or_else(|| format!("Variable '{}' is not defined", key))
+    pub fn get(&self, token: &Token) -> Result<&LiteralValue, String> {
+        let var_name = &token
+            .tag
+            .get_identifier_value()
+            .expect("expected identifier token");
+        self.globals.get(var_name).ok_or_else(|| {
+            format!(
+                "[line {}] Error: variable '{}' is not defined",
+                token.line, var_name
+            )
+        })
     }
 }

@@ -61,7 +61,7 @@ impl<'a> Interpreter<'a> {
     pub fn evaluate(&self, e: Expr) -> EvalResult {
         match e {
             Expr::Literal(v) => Ok(v),
-            Expr::Variable(v_name) => self.environment.get(&v_name).map(|lit_val| lit_val.clone()),
+            Expr::Variable(ident) => self.environment.get(&ident).map(|lit_val| lit_val.clone()),
             Expr::Grouping { expr } => self.evaluate(*expr),
             Expr::Unary { operator, operand } => {
                 let evaluated = self.evaluate(*operand)?;

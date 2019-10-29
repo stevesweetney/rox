@@ -295,10 +295,10 @@ impl Parser {
                 self.current += 1;
                 Ok(Expr::Literal(LiteralValue::STRING(s)))
             }
-            Some((TokenType::Identifer(name), _)) => {
-                let name = name.to_string();
+            Some((TokenType::Identifer(_), _)) => {
+                let token_c = token.unwrap().clone();
                 self.current += 1;
-                Ok(Expr::Variable(name))
+                Ok(Expr::Variable(token_c))
             }
             Some((TokenType::LeftParen, line)) => {
                 self.current += 1;

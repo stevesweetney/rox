@@ -21,7 +21,7 @@ pub enum Expr {
         true_expr: Box<Expr>,
         false_expr: Box<Expr>,
     },
-    Variable(String),
+    Variable(Token),
 }
 
 #[derive(Debug, PartialEq, Clone)]
