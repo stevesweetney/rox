@@ -21,6 +21,7 @@ pub enum Expr {
         true_expr: Box<Expr>,
         false_expr: Box<Expr>,
     },
+    Variable(String),
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -91,6 +92,7 @@ mod print {
                 true_expr,
                 false_expr,
             } => parenthesize("?", &[condition, true_expr, false_expr]),
+            Expr::Variable(val) => format!("variable: '{}'", val),
         }
     }
 

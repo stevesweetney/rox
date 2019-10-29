@@ -277,6 +277,11 @@ impl Parser {
                 self.current += 1;
                 Ok(Expr::Literal(LiteralValue::STRING(s)))
             }
+            Some((TokenType::Identifer(name), _)) => {
+                let name = name.to_string();
+                self.current += 1;
+                Ok(Expr::Variable(name))
+            }
             Some((TokenType::LeftParen, line)) => {
                 self.current += 1;
                 let expr = self.expression()?;

@@ -3,11 +3,15 @@ use crate::statement::Stmt;
 use crate::token::{Token, TokenType};
 use std::io::{self, Write};
 
+mod environment;
+use environment::Environment;
+
 pub type EvalResult = Result<LiteralValue, String>;
 pub type ExecuteResult = Result<(), String>;
 
 pub struct Interpreter<'a> {
     stdout: Box<dyn Write + 'a>,
+    environment: Environment,
 }
 
 impl<'a> Default for Interpreter<'a> {
@@ -21,6 +25,7 @@ impl<'a> Interpreter<'a> {
     pub fn new(stdout: impl Write + 'a) -> Self {
         Self {
             stdout: Box::new(stdout),
+            environment: Environment::new(),
         }
     }
 
@@ -40,13 +45,23 @@ impl<'a> Interpreter<'a> {
                 writeln!(self.stdout, "{}", val).expect("failed to print");
                 Ok(())
             }
-            Stmt::VarDec { .. } => Err("Unsupported for now.".to_owned()),
+            Stmt::VarDec { name, initializer } => {
+                let value = if let Some(expr) = initializer {
+                    Some(self.evaluate(expr)?)
+                } else {
+                    None
+                };
+
+                self.environment.define(name, value);
+                Ok(())
+            }
         }
     }
 
     pub fn evaluate(&self, e: Expr) -> EvalResult {
         match e {
             Expr::Literal(v) => Ok(v),
+            Expr::Variable(v_name) => self.environment.get(&v_name).map(|lit_val| lit_val.clone()),
             Expr::Grouping { expr } => self.evaluate(*expr),
             Expr::Unary { operator, operand } => {
                 let evaluated = self.evaluate(*operand)?;
