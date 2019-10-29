@@ -52,4 +52,13 @@ proptest! {
         let eval_expr = if condition {expr1} else {expr2};
         prop_assert_eq!(eval_expr + "\n", String::from_utf8(buffer).unwrap())
     }
+
+    #[test]
+    fn test_variable_declarations(op1 in any::<f32>(), op2 in any::<f32>()) {
+        let mut buffer = Vec::new();
+        let input = format!(r#"var a = {}; var b = {}; print a + b;"#, op1, op2);
+        scan_parse_and_interpret(input, &mut buffer).unwrap();
+
+        prop_assert_eq!(format!("{}\n", op1 + op2), String::from_utf8(buffer).unwrap())
+    }
 }
